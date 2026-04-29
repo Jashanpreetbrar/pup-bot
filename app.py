@@ -5,42 +5,34 @@ st.set_page_config(page_title="PUP CSE Chatbot")
 
 st.title("🎓 PUP CSE Admission Assistant")
 
-# Load dataset (your uploaded CSV)
 df = pd.read_csv("cutoffs.csv")
 
-# Normalize category column (important)
 df['category'] = df['category'].str.lower()
 
-# Chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-# 🎯 Eligibility logic using avg or latest year
 def check_eligibility(rank, category):
     row = df[df['category'] == category.lower()]
 
     if row.empty:
-        return "❌ Invalid category"
+        return "❌ No Such Category Found."
 
-    # Try avg_cutoff if exists, else use latest year
     if 'avg_cutoff' in df.columns:
         cutoff = int(row['avg_cutoff'].values[0])
     else:
-        # fallback: use last column (latest year)
         cutoff = int(row.iloc[0, -1])
 
     if rank <= cutoff:
-        return f"✅ Eligible (Cutoff ~ {cutoff})"
+        return f"✅ Eligible for Admissions (Cutoff ~ {cutoff})"
     else:
-        return f"⚠️ Lower chances (Cutoff ~ {cutoff})"
+        return f"⚠️ Lower chances of Admissions (Cutoff ~ {cutoff})"
 
-# 💬 Chat input
-user_input = st.chat_input("Enter: rank category (e.g., 720000 general)")
+user_input = st.chat_input("Enter: rank category (e.g., 0000 Category)")
 
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
@@ -53,13 +45,12 @@ if user_input:
         reply = check_eligibility(rank, category)
 
     except:
-        reply = "❌ Format: 720000 general"
+        reply = "❌ Invalid Format (Format should be: 0000 Category)"
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
     st.rerun()
 
-# 📊 BUTTON: Show full dataset
 st.divider()
-if st.button("📊 Show All Previous Year Data"):
+if st.button("📊 Previous 3 Year Data"):
     st.subheader("📊 Complete Dataset")
     st.dataframe(df)
