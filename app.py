@@ -51,6 +51,11 @@ if user_input:
     st.rerun()
 
 st.divider()
+if st.button("🔗 For More Info"):
+    st.markdown(
+        "<a href='https://www.punjabiuniversity.ac.in/' target='_blank'>Click here to visit official website</a>",
+        unsafe_allow_html=True
+    )
 if st.button("📊 Previous 3 Year Data"):
     st.subheader("📊 Complete Dataset")
     st.dataframe(df)
