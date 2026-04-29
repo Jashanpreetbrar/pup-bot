@@ -38,7 +38,7 @@ body {
 """, unsafe_allow_html=True)
 
 # Title
-st.markdown("<h2 style='text-align:center;'>🎓 PUP CSE Admission Assistant</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align:center;'>🎓 Punjabi University, Patiala CSE Admission Assistant</h2>", unsafe_allow_html=True)
 
 # Load dataset
 df = pd.read_csv("cutoffs.csv")
