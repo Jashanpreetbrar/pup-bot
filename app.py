@@ -1,55 +1,65 @@
-from flask import Flask, request
-from twilio.twiml.messaging_response import MessagingResponse
+import streamlit as st
 import pandas as pd
 
-app = Flask(__name__)
+st.set_page_config(page_title="PUP CSE Chatbot")
 
-# Load dataset
-df = pd.read_csv("cutoffs.csv")
+st.title("🎓 PUP CSE Admission Assistant")
 
-# ✅ Home route (for browser testing)
-@app.route("/")
-def home():
-    return "PUP WhatsApp Bot is Running ✅"
+# Load dataset (your uploaded CSV)
+df = pd.read_csv("Previous Year ranks - Sheet1.csv")
 
-# 🎯 Eligibility logic
+# Normalize category column (important)
+df['category'] = df['category'].str.lower()
+
+# Chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat messages
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
+
+# 🎯 Eligibility logic using avg or latest year
 def check_eligibility(rank, category):
     row = df[df['category'] == category.lower()]
 
     if row.empty:
-        return "❌ Invalid category. Use: general, sc, bc, rural"
+        return "❌ Invalid category"
 
-    cutoff = int(row['avg_cutoff'].values[0])
+    # Try avg_cutoff if exists, else use latest year
+    if 'avg_cutoff' in df.columns:
+        cutoff = int(row['avg_cutoff'].values[0])
+    else:
+        # fallback: use last column (latest year)
+        cutoff = int(row.iloc[0, -1])
 
     if rank <= cutoff:
-        return f"✅ Eligible for CSE (Cutoff ~ {cutoff})"
+        return f"✅ Eligible (Cutoff ~ {cutoff})"
     else:
         return f"⚠️ Lower chances (Cutoff ~ {cutoff})"
 
-# 📱 WhatsApp webhook
-@app.route("/whatsapp", methods=["POST"])
-def whatsapp():
-    incoming_msg = request.form.get("Body", "").strip().lower()
-    resp = MessagingResponse()
+# 💬 Chat input
+user_input = st.chat_input("Enter: rank category (e.g., 720000 general)")
+
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
     try:
-        parts = incoming_msg.split()
+        parts = user_input.split()
         rank = int(parts[0])
         category = parts[1]
 
-        result = check_eligibility(rank, category)
-        resp.message(result)
+        reply = check_eligibility(rank, category)
 
     except:
-        resp.message(
-            "🎓 PUP CSE Bot\n\n"
-            "Send message like:\n"
-            "720000 general\n\n"
-            "Categories: general, sc, bc, rural"
-        )
+        reply = "❌ Format: 720000 general"
 
-    return str(resp)
+    st.session_state.messages.append({"role": "assistant", "content": reply})
+    st.rerun()
 
-# 🚀 Run app
-if __name__ == "__main__":
-    app.run()
+# 📊 BUTTON: Show full dataset
+st.divider()
+if st.button("📊 Show All Previous Year Data"):
+    st.subheader("📊 Complete Dataset")
+    st.dataframe(df)
