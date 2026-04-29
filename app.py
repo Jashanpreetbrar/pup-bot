@@ -6,7 +6,7 @@ st.set_page_config(page_title="PUP CSE Chatbot")
 st.title("🎓 PUP CSE Admission Assistant")
 
 # Load dataset (your uploaded CSV)
-df = pd.read_csv("Previous Year ranks - Sheet1.csv")
+df = pd.read_csv("cutoffs.csv")
 
 # Normalize category column (important)
 df['category'] = df['category'].str.lower()
